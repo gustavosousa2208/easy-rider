@@ -15,3 +15,6 @@ Bus fleet database
 
 # line schedule
 ![Diagram_of_the_bus_line](https://user-images.githubusercontent.com/99888480/163691172-4eca8413-e4a1-424c-90e9-7f72f8e2b3a1.jpg)
+
+# bus data entry
+![Documentation](https://user-images.githubusercontent.com/99888480/163691237-3cdccd83-de19-4dab-be82-2ae01bdf633f.jpg)
