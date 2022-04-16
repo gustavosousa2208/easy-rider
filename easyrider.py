@@ -89,10 +89,66 @@ a_time: {}""".format(sum(errors), *errors))
             print("Line {}: {} stops".format(ids[x], len(lines[x])))
 
     def bus_schedule_check(self):
+        # TODO: find a more efficient way to separate S, F and transfer stops
         """function for checking bus start, end line and stops"""
+        # add lists for stop types
+        start = []
+        transfer = []
+        final = []
+
+        # sort by bus id
+        group = sorted(self.buses, key=lambda i: i["bus_id"])
+
+        # separate by bus id
+        group = [list(x) for _, x in groupby(group, lambda k: k["bus_id"])]
+
+        # create list for all the unique street names
+        streets = set([x["stop_name"] for x in self.buses])
+
+        # from each line add start stop and final stop to stop type lists
+        for buses in group:
+            for x in buses:
+                if x["stop_type"] == "S":
+                    start.append((x["bus_id"], x["stop_name"]))
+                elif x["stop_type"] == "F":
+                    final.append((x["bus_id"], x["stop_name"]))
+
+        # if bus is missing start or end line, print error
+        for buses in group:
+            for bus in buses:
+                if bus["stop_type"] == "S" and bus["stop_name"] not in [x[1] for x in start]:
+                    print("There is no start or end stop for the line: {}.".format(bus["bus_id"]))
+                    return
+                if bus["stop_type"] == "F" and bus["stop_name"] not in [x[1] for x in final]:
+                    print("There is no start or end stop for the line: {}.".format(bus["bus_id"]))
+                    return
+            types = [x["stop_type"] for x in buses]
+            if "S" not in types or "F" not in types:
+                print("There is no start or end stop for the line: {}.".format(bus["bus_id"]))
+                return
+
+        # if a non-transfer stop is in transfer list, remove it
+        for x in streets:
+            n_buses = 0
+            for buses in group:
+                if x in [y["stop_name"] for y in buses]:
+                    n_buses += 1
+                    continue
+            if n_buses > 1:
+                transfer.append(x)
+
+        # to assure no street name appear more than once
+        start = sorted(set([x[1] for x in start]))
+        transfer = sorted(set(transfer))
+        final = sorted(set([x[1] for x in final]))
+
+        # print results
+        print("Start stops: {}".format(len(start)), list(start))
+        print("Transfer stops: {}".format(len(transfer)), list(transfer))
+        print("Final stops: {}".format(len(final)), list(final))
 
 
 if __name__ == '__main__':
     fleet = Fleet()
     fleet.import_data(BUS_DATA)
-    fleet.line_stops()
+    fleet.bus_schedule_check()
