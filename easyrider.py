@@ -2,7 +2,11 @@ import json
 import re
 
 BUS_DATA = 'input'  # if "input" then, receive from stdin, else, from file declared here
-DUMP_FILE = ""  # given a path, will dump the data to a file
+DUMP_FILE = "bus.json"  # given a path, will dump the data to a file
+
+stop_name_match = re.compile(r"([A-Z]\w*\s){1,2}(Road|Avenue|Boulevard|Street)(?! )")
+stop_type_match = re.compile(r"\b[SFO]\b")
+stop_time_match = re.compile(r"(^0\d:[0-5]\d$)|(^1\d:[0-5]\d$)|(^2[0-3]:[0-5]\d$)")
 
 
 class Fleet:
@@ -33,28 +37,28 @@ class Fleet:
             print(x.bus_id, x.stop_id, x.stop_name, x.next_stop, x.stop_type, x.a_time)
 
     def check_data(self):
-        errors = [0] * 6  # respectively by self.Bus class order
+        errors = [0] * 3
         for x in self.buses:
-            if x["bus_id"] == "" or type(x["bus_id"]) != int:
-                errors[0] += 1
-            if x["stop_id"] == "" or type(x["stop_id"]) != int:
-                errors[1] += 1
             if x["stop_name"] == "" or type(x["stop_name"]) != str:
-                errors[2] += 1
-            if x["next_stop"] == "" or type(x["next_stop"]) != int:
-                errors[3] += 1
-            if type(x["stop_type"]) != str or len(x["stop_type"]) > 1:
-                errors[4] += 1
+                errors[0] += 1
+            elif stop_name_match.match(x["stop_name"]) is None:
+                errors[0] += 1
+                print("name:", x["stop_name"], file=open("error.txt", "a"))
+
+            if len(x["stop_type"]) > 0:
+                if stop_type_match.search(x["stop_type"]) is None:
+                    errors[1] += 1
+
             if x["a_time"] == "" or type(x["a_time"]) != str:
-                errors[5] += 1
+                errors[2] += 1
+                print("time:", x["a_time"], file=open("error.txt", "a"))
             else:
-                if re.match(r'\d\d?:\d\d', x["a_time"]) is None:
-                    errors[5] += 1
+                if stop_time_match.match(x["a_time"]) is None:
+                    errors[2] += 1
+                    print("time:", x["a_time"], file=open("error.txt", "a"))
+
         print("""Type and required field validation: {} errors
-bus_id: {}
-stop_id: {}
 stop_name: {}
-next_stop: {}
 stop_type: {}
 a_time: {}""".format(sum(errors), *errors))
 
