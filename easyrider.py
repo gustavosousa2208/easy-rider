@@ -2,8 +2,8 @@ import json
 import re
 from itertools import groupby
 
-BUS_DATA = 'input'  # if "input" then, receive from stdin, else, from file declared here
-DUMP_FILE = "bus.json"  # given a path, will dump the data to a file
+BUS_DATA = 'bus.json'  # if "input" then, receive from stdin, else, from file declared here
+DUMP_FILE = "dump.json"  # given a path, will dump the data to a file
 
 stop_name_match = re.compile(r"([A-Z]\w*\s){1,2}(Road|Avenue|Boulevard|Street)(?! )")
 stop_type_match = re.compile(r"\b[SFO]\b")
@@ -97,7 +97,11 @@ a_time: {}""".format(sum(errors), *errors))
         final = []
 
         # sort by bus id
-        group = sorted(self.buses, key=lambda i: i["bus_id"])
+        try:
+            group = sorted(self.buses, key=lambda i: i["bus_id"])
+        except TypeError:
+            print("Error: check data")
+            return
 
         # separate by bus id
         group = [list(x) for _, x in groupby(group, lambda k: k["bus_id"])]
@@ -150,5 +154,8 @@ a_time: {}""".format(sum(errors), *errors))
 
 if __name__ == '__main__':
     fleet = Fleet()
+    fleet.show()
     fleet.import_data(BUS_DATA)
+    # fleet.check_data()
+    # fleet.line_stops()
     fleet.bus_schedule_check()
